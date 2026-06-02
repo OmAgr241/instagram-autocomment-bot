@@ -38,8 +38,17 @@ CREATE TABLE bot_sessions (
   updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Auto-update updated_at on session upsert
-CREATE OR REPLACE FUNCTION update_bot_sessions_timestamp()
+-- Stores the target accounts to monitor and their comment variants
+CREATE TABLE target_accounts (
+  username      TEXT PRIMARY KEY,
+  comments      JSONB NOT NULL,
+  is_active     BOOLEAN DEFAULT TRUE,
+  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Auto-update updated_at on session and target_accounts upsert
+CREATE OR REPLACE FUNCTION update_timestamp_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -50,7 +59,12 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_bot_sessions_updated_at
   BEFORE UPDATE ON bot_sessions
   FOR EACH ROW
-  EXECUTE FUNCTION update_bot_sessions_timestamp();
+  EXECUTE FUNCTION update_timestamp_column();
+
+CREATE TRIGGER trg_target_accounts_updated_at
+  BEFORE UPDATE ON target_accounts
+  FOR EACH ROW
+  EXECUTE FUNCTION update_timestamp_column();
 
 -- Index for efficient cleanup
 CREATE INDEX idx_seen_posts_commented_at ON seen_posts (commented_at);
@@ -70,20 +84,15 @@ Go to your forked repo → **Settings → Secrets and variables → Actions** �
 | `SUPABASE_KEY` | Your Supabase anon key |
 | `DISCORD_WEBHOOK_URL` | *(Optional)* Discord webhook for failure alerts |
 
-### 4. Edit `config.yaml`
+### 4. Add target accounts in Supabase
 
-Replace the placeholder accounts with the accounts you want to monitor:
+1. Go to your Supabase Dashboard → **Table Editor** → `target_accounts`
+2. Click **Insert row**
+3. Add a target `username` (e.g., `some_account`)
+4. Add `comments` as a JSON array of strings: `["Great post! 🔥", "This is awesome! 💪", "Love this content!"]`
+5. Keep `is_active` set to `TRUE`
 
-```yaml
-target_accounts:
-  - username: "some_account"
-    comments:
-      - "Great post! 🔥"
-      - "This is awesome! 💪"
-      - "Love this content!"
-```
-
-> **Tip:** Use at least 3 comment variants per account to look more natural.
+> **Tip:** Use at least 3 comment variants per account to look more natural. You can add/remove accounts directly from the dashboard without touching code!
 
 ### 5. Push & go
 
@@ -95,7 +104,6 @@ To trigger a manual run: go to **Actions** → **Instagram Auto-Comment Bot** �
 
 | Setting | Default | Description |
 |---|---|---|
-| `target_accounts` | — | List of accounts to monitor, each with a `comments` pool |
 | `posts_to_check` | `5` | How many recent posts to check per account per run |
 | `max_comments_per_account_per_run` | `2` | Cap on comments per account per run (anti-ban) |
 | `comment_delay.min` | `30` | Minimum seconds to wait between comments |

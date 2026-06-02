@@ -13,7 +13,7 @@ import time
 from instagrapi.exceptions import ClientError, LoginRequired
 
 from bot.config import load_config
-from bot.database import cleanup_old_records, is_seen, mark_seen
+from bot.database import cleanup_old_records, get_target_accounts, is_seen, mark_seen
 from bot.instagram import ChallengeError, get_new_posts, login, post_comment
 from bot.logger import log
 from bot.notifier import send_alert
@@ -34,9 +34,17 @@ def main() -> None:
     if config.dry_run:
         log.info("*** DRY RUN MODE — no comments will be posted ***")
 
+    # ------------------------------------------------------------------
+    # Load target accounts from Supabase (editable via dashboard)
+    # ------------------------------------------------------------------
+    targets = get_target_accounts()
+    if not targets:
+        log.warning("No active target accounts found in Supabase — nothing to do")
+        return
+
     log.info(
         "=== Bot run started | %d target account(s) | dry_run=%s ===",
-        len(config.target_accounts),
+        len(targets),
         config.dry_run,
     )
 
@@ -80,8 +88,9 @@ def main() -> None:
     total_commented = 0
     consecutive_failures = 0
 
-    for target in config.target_accounts:
-        account = target.username
+    for target in targets:
+        account = target["username"]
+        comments = target["comments"]
         log.info("--- Processing @%s ---", account)
         total_checked += 1
 
@@ -130,7 +139,7 @@ def main() -> None:
                 break
 
             # Pick a random comment variant
-            comment_text = random.choice(target.comments)
+            comment_text = random.choice(comments)
 
             if config.dry_run:
                 log.info(

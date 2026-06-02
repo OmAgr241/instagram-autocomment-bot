@@ -1,20 +1,9 @@
-# Instagram accounts to monitor
-target_accounts:
-  - username: "account_one"
-    comments:  # Bot picks one at random per post
-      - "Great post! 🔥"
-      - "This is awesome! 💪"
-      - "Love this content!"
-  - username: "account_two"
-    comments:
-      - "Amazing content as always!"
-      - "This is incredible! 🙌"
-      - "Always delivering quality 💯"
-  - username: "account_three"
-    comments:
-      - "Love this! 💯"
-      - "So good! 🔥"
-      - "Absolutely fire content!"
+# ============================================================
+# Instagram Auto-Comment Bot — Settings
+# ============================================================
+# Target accounts are managed in Supabase (target_accounts table)
+# Edit them from: https://supabase.com/dashboard → Table Editor
+# ============================================================
 
 # How many recent posts to check per account per run
 posts_to_check: 5

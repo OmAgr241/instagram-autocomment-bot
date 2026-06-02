@@ -1,4 +1,4 @@
-"""Supabase CRUD operations for the seen_posts table."""
+"""Supabase CRUD operations for seen_posts and target_accounts tables."""
 
 from __future__ import annotations
 
@@ -96,3 +96,25 @@ def cleanup_old_records(retention_days: int) -> int:
     except Exception as exc:
         log.error("Supabase error during cleanup: %s", exc)
         return 0
+
+
+def get_target_accounts() -> list[dict]:
+    """Fetch active target accounts from the Supabase target_accounts table.
+
+    Returns a list of dicts, each with 'username' (str) and 'comments' (list[str]).
+    Returns an empty list on error.
+    """
+    try:
+        result = (
+            _get_client()
+            .table("target_accounts")
+            .select("username, comments")
+            .eq("is_active", True)
+            .execute()
+        )
+        accounts = result.data if result.data else []
+        log.info("Loaded %d active target account(s) from Supabase", len(accounts))
+        return accounts
+    except Exception as exc:
+        log.error("Failed to load target accounts from Supabase: %s", exc)
+        return []
