@@ -1,0 +1,38 @@
+# Instagram accounts to monitor
+target_accounts:
+  - username: "account_one"
+    comments:  # Bot picks one at random per post
+      - "Great post! 🔥"
+      - "This is awesome! 💪"
+      - "Love this content!"
+  - username: "account_two"
+    comments:
+      - "Amazing content as always!"
+      - "This is incredible! 🙌"
+      - "Always delivering quality 💯"
+  - username: "account_three"
+    comments:
+      - "Love this! 💯"
+      - "So good! 🔥"
+      - "Absolutely fire content!"
+
+# How many recent posts to check per account per run
+posts_to_check: 5
+
+# Maximum comments to post per account in a single run
+# Prevents burst-commenting if an account posts multiple times at once
+max_comments_per_account_per_run: 2
+
+# Delay between consecutive comments (seconds) - randomized between min and max
+comment_delay:
+  min: 30
+  max: 90
+
+# Only comment on posts newer than this many hours
+max_post_age_hours: 24
+
+# Delete seen_posts records older than this many days (keeps DB clean)
+seen_posts_retention_days: 30
+
+# Set to true to run without actually posting comments (for testing)
+dry_run: false
