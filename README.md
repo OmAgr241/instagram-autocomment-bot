@@ -24,6 +24,13 @@ Click **Fork** on GitHub to create your own copy.
 2. Open the **SQL Editor** and run the following:
 
 ```sql
+-- Tracks which target accounts to monitor
+CREATE TABLE target_accounts (
+  username      TEXT PRIMARY KEY,
+  comments      JSONB NOT NULL,
+  is_active     BOOLEAN DEFAULT TRUE
+);
+
 -- Tracks which posts have already been commented on
 CREATE TABLE seen_posts (
   post_id       TEXT PRIMARY KEY,
@@ -38,17 +45,8 @@ CREATE TABLE bot_sessions (
   updated_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Stores the target accounts to monitor and their comment variants
-CREATE TABLE target_accounts (
-  username      TEXT PRIMARY KEY,
-  comments      JSONB NOT NULL,
-  is_active     BOOLEAN DEFAULT TRUE,
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Auto-update updated_at on session and target_accounts upsert
-CREATE OR REPLACE FUNCTION update_timestamp_column()
+-- Auto-update updated_at on session upsert
+CREATE OR REPLACE FUNCTION update_bot_sessions_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -59,12 +57,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_bot_sessions_updated_at
   BEFORE UPDATE ON bot_sessions
   FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp_column();
-
-CREATE TRIGGER trg_target_accounts_updated_at
-  BEFORE UPDATE ON target_accounts
-  FOR EACH ROW
-  EXECUTE FUNCTION update_timestamp_column();
+  EXECUTE FUNCTION update_bot_sessions_timestamp();
 
 -- Index for efficient cleanup
 CREATE INDEX idx_seen_posts_commented_at ON seen_posts (commented_at);
@@ -84,15 +77,19 @@ Go to your forked repo → **Settings → Secrets and variables → Actions** �
 | `SUPABASE_KEY` | Your Supabase anon key |
 | `DISCORD_WEBHOOK_URL` | *(Optional)* Discord webhook for failure alerts |
 
-### 4. Add target accounts in Supabase
+### 4. Add Target Accounts to Supabase
 
-1. Go to your Supabase Dashboard → **Table Editor** → `target_accounts`
-2. Click **Insert row**
-3. Add a target `username` (e.g., `some_account`)
-4. Add `comments` as a JSON array of strings: `["Great post! 🔥", "This is awesome! 💪", "Love this content!"]`
-5. Keep `is_active` set to `TRUE`
+Target accounts are stored in your Supabase database. This keeps your list private (since the GitHub repository is public) and lets you add or change accounts without pushing new code.
 
-> **Tip:** Use at least 3 comment variants per account to look more natural. You can add/remove accounts directly from the dashboard without touching code!
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard).
+2. Click on **Table Editor** in the left menu.
+3. Open the `target_accounts` table.
+4. Click **Insert row**:
+   - `username`: The Instagram username to monitor (e.g., `some_account`).
+   - `comments`: A JSON array of comment variants (e.g., `["Great post! 🔥", "This is awesome! 💪", "Love this content!"]`).
+   - `is_active`: Set to `TRUE`.
+
+> **Tip:** Use at least 3 comment variants per account to look more natural.
 
 ### 5. Push & go
 

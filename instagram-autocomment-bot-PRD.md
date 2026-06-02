@@ -83,24 +83,6 @@ instagram-autocomment-bot/
 This is the only file the user needs to edit to change behavior.
 
 ```yaml
-# Instagram accounts to monitor
-target_accounts:
-  - username: "account_one"
-    comments:  # Bot picks one at random per post
-      - "Great post! 🔥"
-      - "This is awesome! 💪"
-      - "Love this content!"
-  - username: "account_two"
-    comments:
-      - "Amazing content as always!"
-      - "This is incredible! 🙌"
-      - "Always delivering quality 💯"
-  - username: "account_three"
-    comments:
-      - "Love this! 💯"
-      - "So good! 🔥"
-      - "Absolutely fire content!"
-
 # How many recent posts to check per account per run
 posts_to_check: 5
 
@@ -144,6 +126,13 @@ These must be set in the GitHub repo under **Settings → Secrets → Actions**:
 Run this SQL in the Supabase SQL editor to create the required tables:
 
 ```sql
+-- Tracks which target accounts to monitor
+CREATE TABLE target_accounts (
+  username      TEXT PRIMARY KEY,
+  comments      JSONB NOT NULL,
+  is_active     BOOLEAN DEFAULT TRUE
+);
+
 -- Tracks which posts have already been commented on
 CREATE TABLE seen_posts (
   post_id       TEXT PRIMARY KEY,
