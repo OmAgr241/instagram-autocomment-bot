@@ -14,8 +14,8 @@ max_comments_per_account_per_run: 2
 
 # Delay between consecutive comments (seconds) - randomized between min and max
 comment_delay:
-  min: 30
-  max: 90
+  min: 10
+  max: 25
 
 # Only comment on posts newer than this many hours
 max_post_age_hours: 24
