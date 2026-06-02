@@ -10,7 +10,7 @@ posts_to_check: 5
 
 # Maximum comments to post per account in a single run
 # Prevents burst-commenting if an account posts multiple times at once
-max_comments_per_account_per_run: 2
+max_comments_per_account_per_run: 1
 
 # Delay between consecutive comments (seconds) - randomized between min and max
 comment_delay:
